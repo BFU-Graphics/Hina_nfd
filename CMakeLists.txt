@@ -8,19 +8,22 @@ if(APPLE)
 
 	project(nfd LANGUAGES C OBJC)
 
-	set(SOURCES_NFD "nfd_common.c"
-					"nfd_common.h"
-					"nfd_cocoa.m")
+	add_library(nfd STATIC)
+	target_sources(nfd
+			PRIVATE
+			nfd_cocoa.m
+			nfd_common.c
 
-	add_library(nfd STATIC ${SOURCES_NFD})
+			PUBLIC
+			FILE_SET HEADERS
+			BASE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/../
+			FILES
+			nfd_common.h
+			)
 
 elseif(LINUX)
 
 	project(nfd LANGUAGES C)
-
-	set(SOURCES_NFD "nfd_common.c"
-					"nfd_common.h"
-					"nfd_gtk.c")
 	
 	find_package(PkgConfig REQUIRED)
     pkg_check_modules(GTK3 REQUIRED gtk+-3.0)
@@ -29,7 +32,18 @@ elseif(LINUX)
     link_directories(${GTK3_LIBRARY_DIRS})
     add_definitions(${GTK3_CFLAGS_OTHER})
 
-	add_library(nfd STATIC ${SOURCES_NFD})
+	add_library(nfd STATIC)
+	target_sources(nfd
+			PRIVATE
+			nfd_gtk.c
+			nfd_common.c
+
+			PUBLIC
+			FILE_SET HEADERS
+			BASE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/../
+			FILES
+			nfd_common.h
+			)
 
 	if(CMAKE_CXX_COMPILER_ID MATCHES "GNU")
 		set(CMAKE_C_FLAGS "-Wno-format-truncation ${CMAKE_C_FLAGS}")
@@ -41,13 +55,30 @@ elseif(LINUX)
 else()
 	project(nfd LANGUAGES C CXX)
 
-	set(SOURCES_NFD "nfd_common.c"
-					"nfd_common.h"	
-					"nfd_win.cpp")
+	add_library(nfd STATIC)
+	target_sources(nfd
+			PRIVATE
+			nfd_win.cpp
+			nfd_common.c
 
-	add_library(nfd STATIC ${SOURCES_NFD})
+			PUBLIC
+			FILE_SET HEADERS
+			BASE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/../
+			FILES
+			nfd_common.h
+			)
 endif()
 
 if(MSVC)
     set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /Z7")
 endif()
+
+# INSTALL TARGETS
+INSTALL(
+		TARGETS nfd
+		CONFIGURATIONS Release
+		FILE_SET HEADERS
+		RUNTIME DESTINATION bin
+		LIBRARY DESTINATION lib
+		ARCHIVE DESTINATION lib
+)
